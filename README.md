@@ -1,43 +1,73 @@
 # E-Commerce API
 
-A REST API starter project for an e-commerce backend, built with C#, ASP.NET Core 8, Entity Framework Core, and SQL Server.
+[![.NET build](https://github.com/sefademirhan/e-commerce-api/actions/workflows/dotnet.yml/badge.svg)](https://github.com/sefademirhan/e-commerce-api/actions/workflows/dotnet.yml)
+
+A learning-focused **C# / ASP.NET Core 8 REST API** for an online store, using **Entity Framework Core** and **SQL Server**.
 
 ## Features
-- Product CRUD endpoints
-- Category listing and creation
-- Entity Framework Core data access
-- SQL Server configuration
-- Swagger UI in Development
-- Basic input and relationship validation
+- Create, list, update and delete products
+- Create and list categories; get a category by ID
+- Validate product input and category references
+- Return API response DTOs (avoids exposing EF entity navigation graphs)
+- SQL Server configuration and Swagger for local development
 
 ## Requirements
-- .NET 8 SDK
-- SQL Server LocalDB or another SQL Server instance
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- **SQL Server Express LocalDB** (for the included connection string), or your own SQL Server instance
+- PowerShell on Windows
 
-## Run locally
-From the repository root:
+## Set up and run
+Extract the ZIP and open PowerShell in the folder containing this README.
 
 ```powershell
+dotnet --version
 dotnet restore src/ECommerceApi/ECommerceApi.csproj
-dotnet tool install --global dotnet-ef
+dotnet tool install --global dotnet-ef --version 8.0.11
 dotnet ef migrations add InitialCreate --project src/ECommerceApi/ECommerceApi.csproj
 dotnet ef database update --project src/ECommerceApi/ECommerceApi.csproj
-dotnet run --project src/ECommerceApi/ECommerceApi.csproj
+dotnet run --project src/ECommerceApi/ECommerceApi.csproj --launch-profile http
 ```
 
-Open the Swagger URL printed in the terminal (usually `https://localhost:xxxx/swagger`). Update the `StoreDatabase` connection string in `appsettings.json` if needed.
+Then open **http://localhost:5071/swagger**. The browser can be used to test the API through Swagger UI.
+
+If `dotnet-ef` is already installed, use `dotnet tool update --global dotnet-ef --version 8.0.11` instead. If SQL Server LocalDB is not installed, install it or change `StoreDatabase` in `src/ECommerceApi/appsettings.json` for your SQL Server.
 
 ## Endpoints
-- `GET /api/products`, `GET /api/products/{id}`
-- `POST /api/products`, `PUT /api/products/{id}`, `DELETE /api/products/{id}`
-- `GET /api/categories`, `POST /api/categories`
+| Method | URL | Description |
+| --- | --- | --- |
+| GET | `/api/categories` | List categories |
+| GET | `/api/categories/{id}` | Get category |
+| POST | `/api/categories` | Create category |
+| GET | `/api/products` | List products |
+| GET | `/api/products/{id}` | Get product |
+| POST | `/api/products` | Create product |
+| PUT | `/api/products/{id}` | Update product |
+| DELETE | `/api/products/{id}` | Delete product |
+
+Create a category before creating a product.
+
+**Example category request**
+```json
+{ "name": "Electronics" }
+```
+
+**Example product request**
+```json
+{
+  "name": "Keyboard",
+  "description": "Mechanical keyboard",
+  "price": 1299.99,
+  "stockQuantity": 20,
+  "categoryId": 1
+}
+```
 
 ## Roadmap
-- [x] Product and category entities
-- [x] Product CRUD API
-- [x] SQL Server / EF Core configuration
-- [ ] Cart and order workflows
-- [ ] Authentication and authorization
-- [ ] Automated tests
+- [x] Product and category APIs
+- [x] EF Core and SQL Server setup instructions
+- [x] GitHub Actions build checks
+- [ ] Cart and order operations
+- [ ] Authentication/authorization
+- [ ] Automated integration tests
 
-> This is a learning/portfolio starter, not production-ready. Review validation, error handling, migrations, and security before deployment.
+> Portfolio starter only. No cart, payments or checkout are implemented yet. The API needs additional tests, authorization and production hardening before deployment.
