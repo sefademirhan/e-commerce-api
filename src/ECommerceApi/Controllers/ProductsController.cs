@@ -1,0 +1,76 @@
+using ECommerceApi.Data;
+using ECommerceApi.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace ECommerceApi.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProductsController(StoreDbContext db) : ControllerBase
+{
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Product>>> GetAll(CancellationToken ct) =>
+        Ok(await db.Products.AsNoTracking().Include(p => p.Category).OrderBy(p => p.Id).ToListAsync(ct));
+
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<Product>> GetById(int id, CancellationToken ct)
+    {
+        var product = await db.Products.AsNoTracking().Include(p => p.Category)
+            .FirstOrDefaultAsync(p => p.Id == id, ct);
+        return product is null ? NotFound() : Ok(product);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<Product>> Create(ProductInput input, CancellationToken ct)
+    {
+        if (input.Price < 0 || input.StockQuantity < 0)
+            return BadRequest("Price and stock quantity must be non-negative.");
+        if (!await db.Categories.AnyAsync(c => c.Id == input.CategoryId, ct))
+            return BadRequest("The category does not exist.");
+
+        var product = new Product
+        {
+            Name = input.Name.Trim(),
+            Description = input.Description.Trim(),
+            Price = input.Price,
+            StockQuantity = input.StockQuantity,
+            CategoryId = input.CategoryId
+        };
+        db.Products.Add(product);
+        await db.SaveChangesAsync(ct);
+        return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+    }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Update(int id, ProductInput input, CancellationToken ct)
+    {
+        if (input.Price < 0 || input.StockQuantity < 0)
+            return BadRequest("Price and stock quantity must be non-negative.");
+        if (!await db.Categories.AnyAsync(c => c.Id == input.CategoryId, ct))
+            return BadRequest("The category does not exist.");
+
+        var product = await db.Products.FindAsync([id], ct);
+        if (product is null) return NotFound();
+
+        product.Name = input.Name.Trim();
+        product.Description = input.Description.Trim();
+        product.Price = input.Price;
+        product.StockQuantity = input.StockQuantity;
+        product.CategoryId = input.CategoryId;
+        await db.SaveChangesAsync(ct);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Delete(int id, CancellationToken ct)
+    {
+        var product = await db.Products.FindAsync([id], ct);
+        if (product is null) return NotFound();
+        db.Products.Remove(product);
+        await db.SaveChangesAsync(ct);
+        return NoContent();
+    }
+
+    public record ProductInput(string Name, string Description, decimal Price, int StockQuantity, int CategoryId);
+}
