@@ -1,4 +1,5 @@
 using ECommerceApi.Data;
+using ECommerceApi.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +9,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<StoreDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("StoreDatabase")));
+builder.Services.AddScoped<CheckoutService>();
 
 var app = builder.Build();
 
