@@ -22,3 +22,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();
+
+// Exposes the application entry point to integration tests.
+public partial class Program { }
