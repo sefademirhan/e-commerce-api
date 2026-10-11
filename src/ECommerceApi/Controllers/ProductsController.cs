@@ -35,8 +35,8 @@ public class ProductsController(StoreDbContext db) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ProductResponse>> Create(ProductInput input, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(input.Name) || input.Price < 0 || input.StockQuantity < 0)
-            return BadRequest("A name is required; price and stock quantity must be non-negative.");
+        if (string.IsNullOrWhiteSpace(input.Name) || input.Name.Trim().Length > 200 || input.Price < 0 || input.StockQuantity < 0)
+            return BadRequest("A name of at most 200 characters is required; price and stock quantity must be non-negative.");
 
         var category = await db.Categories.AsNoTracking()
             .SingleOrDefaultAsync(c => c.Id == input.CategoryId, ct);
@@ -62,8 +62,8 @@ public class ProductsController(StoreDbContext db) : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, ProductInput input, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(input.Name) || input.Price < 0 || input.StockQuantity < 0)
-            return BadRequest("A name is required; price and stock quantity must be non-negative.");
+        if (string.IsNullOrWhiteSpace(input.Name) || input.Name.Trim().Length > 200 || input.Price < 0 || input.StockQuantity < 0)
+            return BadRequest("A name of at most 200 characters is required; price and stock quantity must be non-negative.");
         if (!await db.Categories.AnyAsync(c => c.Id == input.CategoryId, ct))
             return BadRequest("The category does not exist.");
 
@@ -85,6 +85,9 @@ public class ProductsController(StoreDbContext db) : ControllerBase
     {
         var product = await db.Products.FindAsync([id], ct);
         if (product is null) return NotFound();
+
+        if (await db.CartItems.AnyAsync(i => i.ProductId == id, ct))
+            return Conflict("Remove this product from guest carts before deleting it.");
 
         db.Products.Remove(product);
         await db.SaveChangesAsync(ct);
