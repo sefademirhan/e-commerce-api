@@ -21,6 +21,67 @@ namespace ECommerceApi.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+
+            modelBuilder.Entity("ECommerceApi.Models.Cart", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+                    b.Property<DateTime>("CreatedAtUtc").HasColumnType("datetime2");
+                    b.HasKey("Id");
+                    b.ToTable("Carts");
+                });
+
+            modelBuilder.Entity("ECommerceApi.Models.CartItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<Guid>("CartId").HasColumnType("uniqueidentifier");
+                    b.Property<int>("ProductId").HasColumnType("int");
+                    b.Property<int>("Quantity").HasColumnType("int");
+                    b.HasKey("Id");
+                    b.HasIndex("CartId", "ProductId").IsUnique();
+                    b.HasIndex("ProductId");
+                    b.ToTable("CartItems");
+                });
+
+            modelBuilder.Entity("ECommerceApi.Models.Order", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<Guid>("CartId").HasColumnType("uniqueidentifier");
+                    b.Property<DateTime>("PlacedAtUtc").HasColumnType("datetime2");
+                    b.Property<Guid>("PublicId").HasColumnType("uniqueidentifier");
+                    b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2).HasColumnType("decimal(18,2)");
+                    b.HasKey("Id");
+                    b.HasIndex("CartId").IsUnique();
+                    b.HasIndex("PublicId").IsUnique();
+                    b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("ECommerceApi.Models.OrderItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<int>("OrderId").HasColumnType("int");
+                    b.Property<int>("ProductId").HasColumnType("int");
+                    b.Property<string>("ProductName")
+                        .IsRequired().HasMaxLength(200).HasColumnType("nvarchar(200)");
+                    b.Property<int>("Quantity").HasColumnType("int");
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2).HasColumnType("decimal(18,2)");
+                    b.HasKey("Id");
+                    b.HasIndex("OrderId");
+                    b.ToTable("OrderItems");
+                });
+
             modelBuilder.Entity("ECommerceApi.Models.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -89,6 +150,30 @@ namespace ECommerceApi.Migrations
                 {
                     b.Navigation("Products");
                 });
+
+            modelBuilder.Entity("ECommerceApi.Models.CartItem", b =>
+                {
+                    b.HasOne("ECommerceApi.Models.Cart", "Cart")
+                        .WithMany("Items").HasForeignKey("CartId")
+                        .OnDelete(DeleteBehavior.Cascade).IsRequired();
+                    b.HasOne("ECommerceApi.Models.Product", "Product")
+                        .WithMany().HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict).IsRequired();
+                    b.Navigation("Cart");
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("ECommerceApi.Models.OrderItem", b =>
+                {
+                    b.HasOne("ECommerceApi.Models.Order", "Order")
+                        .WithMany("Items").HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade).IsRequired();
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("ECommerceApi.Models.Cart", b => b.Navigation("Items"));
+            modelBuilder.Entity("ECommerceApi.Models.Order", b => b.Navigation("Items"));
+
 #pragma warning restore 612, 618
         }
     }
