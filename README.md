@@ -22,15 +22,14 @@ Extract the ZIP and open PowerShell in the folder containing this README.
 ```powershell
 dotnet --version
 dotnet restore src/ECommerceApi/ECommerceApi.csproj
-dotnet tool install --global dotnet-ef --version 8.0.11
-dotnet ef migrations add InitialCreate --project src/ECommerceApi/ECommerceApi.csproj
-dotnet ef database update --project src/ECommerceApi/ECommerceApi.csproj
+dotnet tool restore
+dotnet tool run dotnet-ef database update --project src/ECommerceApi/ECommerceApi.csproj
 dotnet run --project src/ECommerceApi/ECommerceApi.csproj --launch-profile http
 ```
 
 Then open **http://localhost:5071/swagger**. The browser can be used to test the API through Swagger UI.
 
-If `dotnet-ef` is already installed, use `dotnet tool update --global dotnet-ef --version 8.0.11` instead. If SQL Server LocalDB is not installed, install it or change `StoreDatabase` in `src/ECommerceApi/appsettings.json` for your SQL Server.
+The `InitialCreate` migration is included in the repository, so **do not create it again**. The repository-local `dotnet-ef` 8.0.11 tool is restored with `dotnet tool restore`, independent of any global `dotnet-ef` version. If SQL Server LocalDB is not installed, install it or change `StoreDatabase` in `src/ECommerceApi/appsettings.json` for your SQL Server.
 
 ## Endpoints
 | Method | URL | Description |
